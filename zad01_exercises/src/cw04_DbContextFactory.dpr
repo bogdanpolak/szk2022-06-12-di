@@ -1,13 +1,13 @@
 ﻿program cw04_DbContextFactory;
 
 {$APPTYPE CONSOLE}
-
 {$R *.res}
 
 uses
   System.Classes,
   System.SysUtils,
   Spring.Container,
+  Spring.Collections,
   {}
   FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error,
   FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
@@ -18,7 +18,9 @@ uses
   FireDAC.Comp.Client, FireDAC.Comp.DataSet, FireDAC.VCLUI.Wait,
   {}
   FireDAC.Phys.SQLite, FireDAC.Phys.SQLiteDef,
-  FireDAC.Phys.FB, FireDAC.Phys.FBDef;
+  FireDAC.Phys.FB, FireDAC.Phys.FBDef,
+  {}
+  Helper.TDataSet in 'Helper.TDataSet.pas';
 
 type
   IDbContext = interface
@@ -32,9 +34,16 @@ type
   end;
 
 type
+  TProduct = class
+  public
+    ProductId: Integer;
+    ProductName: string;
+    CategoryName: string;
+  end;
+
   TDbContext = class(TInterfacedObject, IDbContext)
   private
-    fOwner: TComponent;
+    fConnection: TFDConnection;
     fConnectionString: string;
   public
     constructor Create(const aConnectionString: string);
@@ -42,30 +51,29 @@ type
     procedure Execute;
   end;
 
-{ TDbContext }
+  { TDbContext }
 
 constructor TDbContext.Create(const aConnectionString: string);
 begin
   fConnectionString := aConnectionString;
-  fOwner := TComponent.Create(nil);
+  writeln(Format('Connection: "%s"', [fConnectionString]));
+  fConnection := TFDConnection.Create(nil);
+  fConnection.ConnectionString := fConnectionString;
 end;
 
 destructor TDbContext.Destroy;
 begin
-  fOwner.Free;
+  fConnection.Free;
   inherited;
 end;
 
 procedure TDbContext.Execute;
 var
-  connection: TFDConnection;
   query: TFDQuery;
+  products: IList<TProduct>;
 begin
-  writeln(Format('Connection: "%s"', [fConnectionString]));
-  connection := TFDConnection.Create(fOwner);
-  connection.ConnectionString := fConnectionString;
-  query := TFDQuery.Create(fOwner);
-  query.connection := connection;
+  query := TFDQuery.Create(fConnection);
+  query.connection := fConnection;
   query.Open('SELECT prod.ProductId, prod.ProductName, prod.SupplierId, ' +
     '  sup.CompanyName as SupplierName, sup.City as SupplierCity, ' +
     '  prod.CategoryId, cat.CategoryName as CategoryName, ' +
@@ -74,8 +82,18 @@ begin
     'FROM {id Products} prod ' +
     '  INNER JOIN {id Suppliers} sup ON prod.SupplierId = sup.SupplierId ' +
     '  INNER JOIN {id Categories} cat ON cat.CategoryId = prod.CategoryId ');
-  query.FetchAll;
-  writeln(Format('Loaded rows: %d', [query.RecordCount]));
+  products := query.LoadData<TProduct>();
+  writeln(Format('Loaded rows: %d', [products.Count]));
+  products.Where(
+    function(const prod: TProduct): boolean
+    begin
+      Result := prod.CategoryName = 'Beverages';
+    end).ForEach(
+    procedure(const prod: TProduct)
+    begin
+      writeln(Format('%d, %s, %s', [prod.ProductId, prod.CategoryName,
+        prod.ProductName]));
+    end);
 end;
 
 { RunDemo }
@@ -109,6 +127,7 @@ begin
     RunDemo();
   except
     on E: Exception do
-      Writeln(E.ClassName, ': ', E.Message);
+      writeln(E.ClassName, ': ', E.Message);
   end;
+
 end.
