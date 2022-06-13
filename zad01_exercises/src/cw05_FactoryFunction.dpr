@@ -1,7 +1,6 @@
 ﻿program cw05_FactoryFunction;
 
 {$APPTYPE CONSOLE}
-
 {$R *.res}
 
 uses
@@ -11,7 +10,7 @@ uses
 type
   IMainService = interface
     ['{333CAFBE-E9C7-4F1C-9ECA-5F070523007E}']
-    procedure Connect(const aToken: string);
+    procedure Connect();
     procedure Run();
   end;
 
@@ -20,73 +19,96 @@ type
     procedure ExecuteSql(const aSql: string);
   end;
 
+  IConfiguration = interface
+    ['{C1CC9640-3B2C-431B-A5F1-FAFA0DDED277}']
+    function GetConnectionString(): string;
+  end;
+
 {$M+}
-  TConnectionFactory = reference to function(const aToken: string)
-    : IDbConnection;
+
+  TConnectionFactoryFunc = reference to function(const aConnectionString
+    : string): IDbConnection;
 {$M-}
 
 type
   TMainService = class(TInterfacedObject, IMainService)
   private
-    fConnectionFactory: TConnectionFactory;
-    fToken: string;
+    fConnectionFactoryFunc: TConnectionFactoryFunc;
+    fConfiguration: IConfiguration;
+    fConnection: IDbConnection;
   public
-    constructor Create(const aConnectionFactory: TConnectionFactory);
-    procedure Connect(const aToken: string);
+    constructor Create(
+      const aConnectionFactoryFunc: TConnectionFactoryFunc;
+      const aConfiguration: IConfiguration);
+    procedure Connect();
     procedure Run();
   end;
 
-  TDbConnection = class(TInterfacedObject, IDbConnection)
-  private
-    fToken: string;
-  public
-    constructor Create(const aToken: string);
-    procedure ExecuteSql(const aSql: string);
+  TConfiguration = class(TInterfacedObject, IConfiguration)
+    function GetConnectionString(): string;
   end;
+
+TDbConnection = class(TInterfacedObject, IDbConnection)public constructor Create
+  (const aConnectionString: string);
+
+procedure ExecuteSql(const aSql: string);
+end;
 
 { TMainService }
 
-procedure TMainService.Connect(const aToken: string);
+constructor TMainService.Create(
+  const aConnectionFactoryFunc: TConnectionFactoryFunc;
+  const aConfiguration: IConfiguration);
 begin
-  fToken := aToken;
+  fConnectionFactoryFunc := aConnectionFactoryFunc;
+  fConfiguration := aConfiguration;
 end;
 
-constructor TMainService.Create(const aConnectionFactory: TConnectionFactory);
+procedure TMainService.Connect();
+var
+  connectionString: string;
 begin
-  fConnectionFactory := aConnectionFactory;
+  connectionString := fConfiguration.GetConnectionString();
+  fConnection := fConnectionFactoryFunc(connectionString);
 end;
 
 procedure TMainService.Run;
-var
-  connection: IDbConnection;
 begin
-  connection := fConnectionFactory(fToken);
-  connection.ExecuteSql('SELECT * FROM table');
+  fConnection.ExecuteSql('SELECT * FROM table');
+end;
+
+{ TConfiguration }
+
+function TConfiguration.GetConnectionString: string;
+begin
+  Result := 'Server=SQLite;Database=abc.sdb;';
 end;
 
 { TDbConnection }
 
-constructor TDbConnection.Create(const aToken: string);
+constructor TDbConnection.Create(const aConnectionString: string);
 begin
-  fToken := aToken;
-  writeln(Format('1. Connect to SQL database usnig token "%s"', [fToken]));
+  writeln(Format('1. Connected to database using "%s"', [aConnectionString]));
 end;
 
 procedure TDbConnection.ExecuteSql(const aSql: string);
 begin
-  writeln(Format('2. Executed SQL: "%s" using token "%s"', [aSql, fToken]));
+  writeln(Format('2. Executed SQL: "%s"', [aSql]));
 end;
+
+{ Demo }
 
 procedure RunDemo();
 var
   mainService: IMainService;
 begin
   GlobalContainer.RegisterType<IMainService, TMainService>();
+  GlobalContainer.RegisterType<IConfiguration, TConfiguration>();
   GlobalContainer.RegisterType<IDbConnection, TDbConnection>();
-  GlobalContainer.RegisterType<TConnectionFactory>().AsFactory();
+  GlobalContainer.RegisterType<TConnectionFactoryFunc>().AsFactory();
   GlobalContainer.Build;
   mainService := GlobalContainer.Resolve<IMainService>();
-  mainService.Connect('F8188F61-5A7F');
+  mainService.Connect();
   mainService.Run();
 end;
 
@@ -95,6 +117,7 @@ begin
     RunDemo;
   except
     on E: Exception do
-      Writeln(E.ClassName, ': ', E.Message);
+      writeln(E.ClassName, ': ', E.Message);
   end;
+
 end.
