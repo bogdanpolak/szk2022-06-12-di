@@ -12,6 +12,9 @@
         <Projects Include="src\cw03_ActivatorExtnesion.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="src\cw04_DbContextFactory.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -47,14 +50,23 @@
     <Target Name="cw03_ActivatorExtnesion:Make">
         <MSBuild Projects="src\cw03_ActivatorExtnesion.dproj" Targets="Make"/>
     </Target>
+    <Target Name="cw04_DbContextFactory">
+        <MSBuild Projects="src\cw04_DbContextFactory.dproj"/>
+    </Target>
+    <Target Name="cw04_DbContextFactory:Clean">
+        <MSBuild Projects="src\cw04_DbContextFactory.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="cw04_DbContextFactory:Make">
+        <MSBuild Projects="src\cw04_DbContextFactory.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="cw01_ConsoleService;cw02_LazyService;cw03_ActivatorExtnesion"/>
+        <CallTarget Targets="cw01_ConsoleService;cw02_LazyService;cw03_ActivatorExtnesion;cw04_DbContextFactory"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="cw01_ConsoleService:Clean;cw02_LazyService:Clean;cw03_ActivatorExtnesion:Clean"/>
+        <CallTarget Targets="cw01_ConsoleService:Clean;cw02_LazyService:Clean;cw03_ActivatorExtnesion:Clean;cw04_DbContextFactory:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="cw01_ConsoleService:Make;cw02_LazyService:Make;cw03_ActivatorExtnesion:Make"/>
+        <CallTarget Targets="cw01_ConsoleService:Make;cw02_LazyService:Make;cw03_ActivatorExtnesion:Make;cw04_DbContextFactory:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
