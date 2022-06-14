@@ -7,9 +7,11 @@ uses
   System.Math,
   Spring.Collections,
   {}
-  FormArrangerC;
+  FormArrangerC,
+  RectanglesBuilder;
 
 type
+
   [TestFixture]
   TMyTestObject = class
   private
@@ -32,21 +34,10 @@ type
 
 implementation
 
-function CreateRectangle(
-  aLeft: Integer;
-  aTop: Integer;
-  aHeight: Integer): TRectangle;
-begin
-  Result := TRectangle.Create;
-  Result.Left := aLeft;
-  Result.Top := aTop;
-  Result.Height := aHeight;
-end;
-
 procedure TMyTestObject.ArrangeOnEmptyScreen;
 begin
   // Arrange
-  rectangles := TCollections.CreateObjectList<TRectangle>();
+  rectangles := GivenLineOfRectagles([]);
 
   // Act
   newRectangle := sut.Arrange(rectangles, 20);
@@ -58,8 +49,7 @@ end;
 
 procedure TMyTestObject.ArrangeOnScreenWithOneRectangle;
 begin
-  rectangles := TCollections.CreateObjectList<TRectangle>
-    ([CreateRectangle(MarginHorizontal, MarginVertical, 50)]);
+  rectangles := GivenLineOfRectagles([50]);
 
   newRectangle := sut.Arrange(rectangles, 20);
 
@@ -69,14 +59,12 @@ end;
 
 procedure TMyTestObject.ArrangeOnScreenWithFullLineOfRectangles;
 begin
-  rectangles := TCollections.CreateObjectList<TRectangle>
-    ([CreateRectangle(MarginHorizontal, MarginVertical, 50),
-      CreateRectangle(2*MarginHorizontal+FormWidth, MarginVertical, 50)]);
+  rectangles := GivenLineOfRectagles([50, 50]);
 
   newRectangle := sut.Arrange(rectangles, 20);
 
   Assert.AreEqual(MarginHorizontal, newRectangle.Left);
-  Assert.AreEqual(2*MarginVertical+50, newRectangle.Top);
+  Assert.AreEqual(2 * MarginVertical + 50, newRectangle.Top);
 end;
 
 procedure TMyTestObject.Setup;

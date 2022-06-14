@@ -14,7 +14,8 @@ uses
   {$ENDIF }
   DUnitX.TestFramework,
   FormArrangerTests in 'FormArrangerTests.pas',
-  FormArrangerC in 'FormArrangerC.pas';
+  FormArrangerC in 'FormArrangerC.pas',
+  RectanglesBuilder in 'RectanglesBuilder.pas';
 
 procedure RunTests();
 {$IFNDEF TESTINSIGHT}
