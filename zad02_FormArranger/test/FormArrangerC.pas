@@ -14,9 +14,14 @@ const
 
 type
   TRectangle = class
+  public
     Top: Integer;
     Left: Integer;
     Height: Integer;
+    constructor Create(
+      const aLeft: Integer;
+      const aTop: Integer;
+      const aHeight: Integer);
   end;
 
   // IFormArranger
@@ -34,24 +39,35 @@ function TFormArranger.Arrange(
   const rectangles: IList<TRectangle>;
   const aNewRectangleHeight: Integer): TRectangle;
 var
-  rectangle: TRectangle;
+  rect: TRectangle;
   maxLineHeight: Integer;
+  Left: Integer;
+  Top: Integer;
 begin
-  Result := TRectangle.Create;
-  Result.Left := MarginHorizontal;
-  Result.Top := MarginVertical;
+  Left := MarginHorizontal;
+  Top := MarginVertical;
   maxLineHeight := 0;
-  for rectangle in rectangles do
+  for rect in rectangles do
   begin
-    Result.Left := Result.Left + MarginHorizontal + FormWidth;
-    maxLineHeight := Max(maxLineHeight, rectangle.Height);
-    if Result.Left + FormWidth >= ScreenWidth then
+    Left := Left + MarginHorizontal + FormWidth;
+    maxLineHeight := Max(maxLineHeight, rect.Height);
+    if Left + FormWidth >= ScreenWidth then
     begin
-      Result.Top := Result.Top + maxLineHeight + MarginVertical;
+      Top := Top + maxLineHeight + MarginVertical;
       maxLineHeight := 0;
-      Result.Left := MarginHorizontal;
+      Left := MarginHorizontal;
     end;
   end;
+  Result := TRectangle.Create(left, top, aNewRectangleHeight);
+end;
+
+{ TRectangle }
+
+constructor TRectangle.Create(const aLeft, aTop, aHeight: Integer);
+begin
+  Left := aLeft;
+  Top := aTop;
+  Height := aHeight;
 end;
 
 end.

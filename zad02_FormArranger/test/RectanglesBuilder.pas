@@ -12,17 +12,6 @@ function GivenLineOfRectagles(const aRectnagleHeights: TArray<Integer>)
 
 implementation
 
-function CreateRectangle(
-  aLeft: Integer;
-  aTop: Integer;
-  aHeight: Integer): TRectangle;
-begin
-  Result := TRectangle.Create;
-  Result.Left := aLeft;
-  Result.Top := aTop;
-  Result.Height := aHeight;
-end;
-
 function GivenLineOfRectagles(const aRectnagleHeights: TArray<Integer>)
   : IList<TRectangle>;
 var
@@ -35,7 +24,7 @@ begin
   top := MarginVertical;
   for height in aRectnagleHeights do
   begin
-    Result.Add(CreateRectangle(left, top, height));
+    Result.Add(TRectangle.Create(left, top, height));
     left := left + MarginHorizontal+FormWidth;
   end;
 end;
