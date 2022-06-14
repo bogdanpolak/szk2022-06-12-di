@@ -3,6 +3,7 @@
 interface
 
 uses
+  System.Math,
   Spring.Collections;
 
 const
@@ -34,16 +35,20 @@ function TFormArranger.Arrange(
   const aNewRectangleHeight: Integer): TRectangle;
 var
   rectangle: TRectangle;
+  maxLineHeight: Integer;
 begin
   Result := TRectangle.Create;
   Result.Left := MarginHorizontal;
   Result.Top := MarginVertical;
+  maxLineHeight := 0;
   for rectangle in rectangles do
   begin
     Result.Left := Result.Left + MarginHorizontal + FormWidth;
+    maxLineHeight := Max(maxLineHeight, rectangle.Height);
     if Result.Left + FormWidth >= ScreenWidth then
     begin
-      Result.Top := Result.Top + rectangles.First.Height + MarginVertical;
+      Result.Top := Result.Top + maxLineHeight + MarginVertical;
+      maxLineHeight := 0;
       Result.Left := MarginHorizontal;
     end;
   end;

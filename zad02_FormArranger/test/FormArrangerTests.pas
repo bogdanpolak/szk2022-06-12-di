@@ -30,6 +30,8 @@ type
     procedure ArrangeOnScreenWithOneRectangle;
     [Test]
     procedure ArrangeOnScreenWithFullLineOfRectangles;
+    [Test]
+    procedure ArrangeGivenDifferentHeightRectangles;
   end;
 
 implementation
@@ -65,6 +67,17 @@ begin
 
   Assert.AreEqual(MarginHorizontal, newRectangle.Left);
   Assert.AreEqual(2 * MarginVertical + 50, newRectangle.Top);
+end;
+
+procedure TMyTestObject.ArrangeGivenDifferentHeightRectangles;
+begin
+  rectangles := GivenLineOfRectagles([20, 50]);
+
+  newRectangle := sut.Arrange(rectangles, 20);
+
+  Assert.AreEqual(MarginHorizontal, newRectangle.Left);
+  Assert.AreEqual(2 * MarginVertical + 50, newRectangle.Top);
+
 end;
 
 procedure TMyTestObject.Setup;
