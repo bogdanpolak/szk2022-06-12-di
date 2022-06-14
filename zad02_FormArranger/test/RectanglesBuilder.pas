@@ -7,6 +7,18 @@ uses
   {}
   FormArrangerC;
 
+type
+  TRectangleBuilder = class
+  private
+    fRectagles: IList<TRectangle>;
+  public
+    constructor Create();
+    function WithLineOfRectangles(
+      const aTop: Integer;
+      const aRectnagleHeights: TArray<Integer>): TRectangleBuilder;
+    function Build: IList<TRectangle>;
+  end;
+
 function GivenLineOfRectagles(const aRectnagleHeights: TArray<Integer>)
   : IList<TRectangle>;
 
@@ -15,17 +27,41 @@ implementation
 function GivenLineOfRectagles(const aRectnagleHeights: TArray<Integer>)
   : IList<TRectangle>;
 var
+  builder: TRectangleBuilder;
+begin
+  builder := TRectangleBuilder.Create()
+    .WithLineOfRectangles(MarginVertical, aRectnagleHeights);
+  Result := builder.Build();
+  builder.Free;
+end;
+
+{ TRectangleBuilder }
+
+constructor TRectangleBuilder.Create();
+begin
+  fRectagles := TCollections.CreateList<TRectangle>();
+end;
+
+function TRectangleBuilder.Build: IList<TRectangle>;
+begin
+  Result := TCollections.CreateObjectList<TRectangle>(fRectagles);
+end;
+
+function TRectangleBuilder.WithLineOfRectangles(
+  const aTop: Integer;
+  const aRectnagleHeights: TArray<Integer>): TRectangleBuilder;
+var
   height: Integer;
   left: Integer;
   top: Integer;
 begin
-  Result := TCollections.CreateObjectList<TRectangle>();
+  Result := self;
   left := MarginHorizontal;
-  top := MarginVertical;
+  top := aTop;
   for height in aRectnagleHeights do
   begin
-    Result.Add(TRectangle.Create(left, top, height));
-    left := left + MarginHorizontal+FormWidth;
+    fRectagles.Add(TRectangle.Create(left, top, height));
+    left := left + MarginHorizontal + FormWidth;
   end;
 end;
 

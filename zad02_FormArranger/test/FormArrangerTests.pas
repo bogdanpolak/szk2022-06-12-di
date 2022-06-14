@@ -17,6 +17,7 @@ type
   private
     rectangles: IList<TRectangle>;
     newRectangle: TRectangle;
+    rectangleBuilder: TRectangleBuilder;
     sut: TFormArranger;
   public
 
@@ -32,6 +33,8 @@ type
     procedure ArrangeOnScreenWithFullLineOfRectangles;
     [Test]
     procedure ArrangeGivenDifferentHeightRectangles;
+    [Test]
+    procedure ArrangeGivenTwoFilledLinesOfRectangles;
   end;
 
 implementation
@@ -77,17 +80,32 @@ begin
 
   Assert.AreEqual(MarginHorizontal, newRectangle.Left);
   Assert.AreEqual(2 * MarginVertical + 50, newRectangle.Top);
+end;
 
+procedure TMyTestObject.ArrangeGivenTwoFilledLinesOfRectangles;
+begin
+  rectangles := rectangleBuilder { }
+    .WithLineOfRectangles(MarginVertical, [20, 50]) { }
+    .WithLineOfRectangles(2 * MarginVertical + 50, [40, 30]) { }
+    .WithLineOfRectangles(3 * MarginVertical + 50 + 40, [35]) { }
+    .Build();
+
+  newRectangle := sut.Arrange(rectangles, 20);
+
+  Assert.AreEqual(2 * MarginHorizontal + FormWidth, newRectangle.Left);
+  Assert.AreEqual(3 * MarginVertical + 50 + 40, newRectangle.Top);
 end;
 
 procedure TMyTestObject.Setup;
 begin
   sut := TFormArranger.Create;
+  rectangleBuilder := TRectangleBuilder.Create();
 end;
 
 procedure TMyTestObject.TearDown;
 begin
   sut.Free;
+  rectangleBuilder.Free;
 end;
 
 initialization
