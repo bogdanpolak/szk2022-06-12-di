@@ -5,30 +5,11 @@ interface
 uses
   DUnitX.TestFramework,
   System.Math,
-  Spring.Collections;
+  Spring.Collections,
+  {}
+  FormArrangerC;
 
 type
-  // IFormArranger
-  TRectangle = class
-    Top: Integer;
-    Left: Integer;
-    Height: Integer;
-  end;
-
-  TFormArranger = class
-    function Arrange(
-      const rectangles: IList<TRectangle>;
-      const aNewRectangleHeight: Integer): TRectangle;
-  end;
-
-const
-  MarginHorizontal = 10;
-  MarginVertical = 20;
-  FormWidth = 200;
-  ScreenWidth = 600;
-
-type
-
   [TestFixture]
   TMyTestObject = class
   private
@@ -106,28 +87,6 @@ end;
 procedure TMyTestObject.TearDown;
 begin
   sut.Free;
-end;
-
-{ TFormArranger }
-
-function TFormArranger.Arrange(
-  const rectangles: IList<TRectangle>;
-  const aNewRectangleHeight: Integer): TRectangle;
-var
-  rectangle: TRectangle;
-begin
-  Result := TRectangle.Create;
-  Result.Left := MarginHorizontal;
-  Result.Top := MarginVertical;
-  for rectangle in rectangles do
-  begin
-    Result.Left := Result.Left + MarginHorizontal + FormWidth;
-    if Result.Left + FormWidth >= ScreenWidth then
-    begin
-      Result.Top := Result.Top + rectangles.First.Height + MarginVertical;
-      Result.Left := MarginHorizontal;
-    end;
-  end;
 end;
 
 initialization

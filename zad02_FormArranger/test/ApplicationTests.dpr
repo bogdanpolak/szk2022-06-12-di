@@ -13,8 +13,10 @@ uses
   DUnitX.Loggers.Xml.NUnit,
   {$ENDIF }
   DUnitX.TestFramework,
-  FormArrangerTests in 'FormArrangerTests.pas';
+  FormArrangerTests in 'FormArrangerTests.pas',
+  FormArrangerC in 'FormArrangerC.pas';
 
+procedure RunTests();
 {$IFNDEF TESTINSIGHT}
 var
   runner: ITestRunner;
@@ -65,4 +67,8 @@ begin
       System.Writeln(E.ClassName, ': ', E.Message);
   end;
 {$ENDIF}
+end;
+
+begin
+  RunTests();
 end.
