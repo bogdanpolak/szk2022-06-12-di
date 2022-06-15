@@ -8,6 +8,7 @@ uses
   System.Math,
   Spring.Collections,
   {}
+  FormArranger,
   FormArrangerC,
   RectanglesBuilder,
   PositionHelper;

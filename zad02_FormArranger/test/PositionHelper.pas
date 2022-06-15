@@ -5,7 +5,7 @@ interface
 uses
   DUnitX.TestFramework,
   System.SysUtils,
-  FormArrangerC;
+  FormArranger;
 
 type
   TPositionHelper = record helper for TPosition

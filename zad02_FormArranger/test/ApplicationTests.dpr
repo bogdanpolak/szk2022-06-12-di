@@ -15,7 +15,8 @@ uses
   DUnitX.TestFramework,
   FormArrangerTests in 'FormArrangerTests.pas',
   FormArrangerC in 'FormArrangerC.pas',
-  RectanglesBuilder in 'RectanglesBuilder.pas';
+  RectanglesBuilder in 'RectanglesBuilder.pas',
+  FormArranger in 'FormArranger.pas';
 
 procedure RunTests();
 {$IFNDEF TESTINSIGHT}

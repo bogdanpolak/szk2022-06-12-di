@@ -5,7 +5,7 @@ interface
 uses
   Spring.Collections,
   {}
-  FormArrangerC;
+  FormArranger;
 
 type
   TRectangleBuilder = class
