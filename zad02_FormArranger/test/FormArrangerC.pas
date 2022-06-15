@@ -10,6 +10,10 @@ uses
 
 type
   TFormArranger = class
+  private
+    fArrangerConfiguration: TArrangerConfiguration;
+  public
+    constructor Create(aArrangerConfiguration: TArrangerConfiguration);
     function Arrange(
       const rectangles: IList<TRectangle>;
       const aNewRectangleHeight: Integer): TPosition;
@@ -23,29 +27,41 @@ function TFormArranger.Arrange(
   const rectangles: IList<TRectangle>;
   const aNewRectangleHeight: Integer): TPosition;
 var
+  marginX: Integer;
+  marginY: Integer;
+  formWidth: Integer;
   rect: TRectangle;
   maxLineHeight: Integer;
   Left: Integer;
   Top: Integer;
 begin
-  Left := MarginHorizontal;
-  Top := MarginVertical;
+  marginX := fArrangerConfiguration.MarginHorizontal;
+  marginY := fArrangerConfiguration.MarginVertical;
+  formWidth := fArrangerConfiguration.FormWidth;
+  Left := fArrangerConfiguration.MarginHorizontal;
+  Top := fArrangerConfiguration.MarginVertical;
   maxLineHeight := 0;
-  if rectangles.IsEmpty or (rectangles.First.Left <> MarginHorizontal) or
-    (rectangles.First.Top <> MarginVertical) then
+  if rectangles.IsEmpty or (rectangles.First.Left <> marginX) or
+    (rectangles.First.Top <> marginY) then
     Exit(TPosition.Create(Left, Top));
   for rect in rectangles do
   begin
-    Left := Left + MarginHorizontal + FormWidth;
+    Left := Left + marginX + formWidth;
     maxLineHeight := Max(maxLineHeight, rect.Height);
-    if Left + FormWidth >= ScreenWidth then
+    if Left + formWidth >= fArrangerConfiguration.ScreenWidth then
     begin
-      Top := Top + maxLineHeight + MarginVertical;
+      Top := Top + maxLineHeight + marginY;
       maxLineHeight := 0;
-      Left := MarginHorizontal;
+      Left := marginX;
     end;
   end;
   Result := TPosition.Create(Left, Top);
+end;
+
+constructor TFormArranger.Create(
+  aArrangerConfiguration: TArrangerConfiguration);
+begin
+  fArrangerConfiguration := aArrangerConfiguration;
 end;
 
 end.

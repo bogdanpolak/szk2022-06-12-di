@@ -43,56 +43,71 @@ type
 
 implementation
 
+{ Configuration Builder }
+
+function GivenDefaultConfiguration(): TArrangerConfiguration; overload;
+begin
+  Result := TArrangerConfiguration.Create;
+  with Result do
+  begin
+    MarginHorizontal := 10;
+    MarginVertical := 20;
+    FormWidth := 200;
+    ScreenWidth := 600;
+  end;
+end;
+
+{ Unit Tests }
+
 procedure TMyTestObject.ArrangeOnEmptyScreen;
 begin
   // Arrange
-  rectangles := GivenLineOfRectagles([]);
+  rectangles := GivenLineOfRectagles([], GivenDefaultConfiguration());
 
   // Act
   position := sut.Arrange(rectangles, 20);
 
   // Assert
-  position.ShouldBe(MarginHorizontal, MarginVertical);
+  position.ShouldBe(10, 20);
 end;
 
 procedure TMyTestObject.ArrangeOnScreenWithOneRectangle;
 begin
-  rectangles := GivenLineOfRectagles([50]);
+  rectangles := GivenLineOfRectagles([50], GivenDefaultConfiguration());
 
   position := sut.Arrange(rectangles, 20);
 
-  position.ShouldBe(2 * MarginHorizontal + FormWidth, MarginVertical);
+  position.ShouldBe(2 * 10 + 200, 20);
 end;
 
 procedure TMyTestObject.ArrangeOnScreenWithFullLineOfRectangles;
 begin
-  rectangles := GivenLineOfRectagles([50, 50]);
+  rectangles := GivenLineOfRectagles([50, 50], GivenDefaultConfiguration());
 
   position := sut.Arrange(rectangles, 20);
 
-  position.ShouldBe(MarginHorizontal, 2 * MarginVertical + 50);
+  position.ShouldBe(10, 2 * 20 + 50);
 end;
 
 procedure TMyTestObject.ArrangeGivenDifferentHeightRectangles;
 begin
-  rectangles := GivenLineOfRectagles([20, 50]);
+  rectangles := GivenLineOfRectagles([20, 50], GivenDefaultConfiguration());
 
   position := sut.Arrange(rectangles, 20);
 
-  position.ShouldBe(MarginHorizontal, 2 * MarginVertical + 50);
+  position.ShouldBe(10, 2 * 20 + 50);
 end;
 
 procedure TMyTestObject.ArrangeGivenTwoFilledLinesOfRectangles;
 begin
   rectangles := rectangleBuilder { }
-    .WithLineOfRectangles(MarginVertical, [20, 50]) { }
-    .WithLineOfRectangles(2 * MarginVertical + 50, [40, 30])
-    .WithLineOfRectangles(3 * MarginVertical + 50 + 40, [35]).Build();
+    .WithLineOfRectangles(20, [20, 50]) { }
+    .WithLineOfRectangles(90, [40, 30]) { }
+    .WithLineOfRectangles(150, [35]).Build();
 
   position := sut.Arrange(rectangles, 20);
 
-  position.ShouldBe(2 * MarginHorizontal + FormWidth,
-    3 * MarginVertical + 50 + 40);
+  position.ShouldBe(220, 150);
 end;
 
 const
@@ -100,17 +115,27 @@ const
 
 procedure TMyTestObject.ArrangeGivenEmptySpace;
 begin
-  rectangles := GivenLineOfRectagles([Empty, 50]);
+  rectangles := GivenLineOfRectagles([Empty, 50], GivenDefaultConfiguration());
 
   position := sut.Arrange(rectangles, 20);
 
-  position.ShouldBe(MarginHorizontal, MarginVertical);
+  position.ShouldBe(10, 20);
 end;
 
 procedure TMyTestObject.Setup;
+var
+  arrangerConfiguration: TArrangerConfiguration;
 begin
-  sut := TFormArranger.Create;
-  rectangleBuilder := TRectangleBuilder.Create();
+  arrangerConfiguration := TArrangerConfiguration.Create;
+  with arrangerConfiguration do
+  begin
+    MarginHorizontal := 10;
+    MarginVertical := 20;
+    FormWidth := 200;
+    ScreenWidth := 600;
+  end;
+  sut := TFormArranger.Create(arrangerConfiguration);
+  rectangleBuilder := TRectangleBuilder.Create(GivenDefaultConfiguration());
 end;
 
 procedure TMyTestObject.TearDown;

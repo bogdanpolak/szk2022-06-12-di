@@ -2,11 +2,22 @@
 
 interface
 
+(*
 const
   MarginHorizontal = 10;
   MarginVertical = 20;
   FormWidth = 200;
   ScreenWidth = 600;
+*)
+
+type
+  TArrangerConfiguration = class
+  public
+    MarginHorizontal: Integer;
+    MarginVertical: Integer;
+    FormWidth: Integer;
+    ScreenWidth: Integer;
+  end;
 
 type
   TRectangle = class
