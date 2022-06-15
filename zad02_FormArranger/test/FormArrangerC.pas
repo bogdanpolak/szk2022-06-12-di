@@ -12,6 +12,9 @@ type
   TFormArranger = class
   private
     fArrangerConfiguration: TArrangerConfiguration;
+    function RectangleAtSlot(
+      const aLeft, aTop: Integer;
+      const rectangles: IList<TRectangle>): TRectangle;
   public
     constructor Create(aArrangerConfiguration: TArrangerConfiguration);
     function Arrange(
@@ -23,6 +26,17 @@ implementation
 
 { TFormArranger }
 
+function TFormArranger.RectangleAtSlot(
+  const aLeft, aTop: Integer;
+  const rectangles: IList<TRectangle>): TRectangle;
+begin
+  Result := rectangles.Where(
+    function(const rect: TRectangle): boolean
+    begin
+      Result := (rect.Left = aLeft) and (rect.Top = aTop);
+    end).FirstOrDefault;
+end;
+
 function TFormArranger.Arrange(
   const rectangles: IList<TRectangle>;
   const aNewRectangleHeight: Integer): TPosition;
@@ -30,36 +44,32 @@ var
   marginX: Integer;
   marginY: Integer;
   formWidth: Integer;
-  rect: TRectangle;
   maxLineHeight: Integer;
-  Left: Integer;
-  Top: Integer;
+  rect: TRectangle;
 begin
   marginX := fArrangerConfiguration.MarginHorizontal;
   marginY := fArrangerConfiguration.MarginVertical;
-  formWidth := fArrangerConfiguration.FormWidth;
-  Left := fArrangerConfiguration.MarginHorizontal;
-  Top := fArrangerConfiguration.MarginVertical;
+  formWidth := fArrangerConfiguration.formWidth;
+  Result := TPosition.Create(marginX, marginY);
   maxLineHeight := 0;
-  if rectangles.IsEmpty or (rectangles.First.Left <> marginX) or
-    (rectangles.First.Top <> marginY) then
-    Exit(TPosition.Create(Left, Top));
-  for rect in rectangles do
+  while true do
   begin
-    Left := Left + marginX + formWidth;
+    rect := RectangleAtSlot(Result.Left, Result.Top, rectangles);
+    if rect = nil then
+      Exit;
+    Result.Left := Result.Left + marginX + formWidth;
     maxLineHeight := Max(maxLineHeight, rect.Height);
-    if Left + formWidth >= fArrangerConfiguration.ScreenWidth then
+    if Result.Left + formWidth >= fArrangerConfiguration.ScreenWidth then
     begin
-      Top := Top + maxLineHeight + marginY;
+      Result.Top := Result.Top + maxLineHeight + marginY;
       maxLineHeight := 0;
-      Left := marginX;
+      Result.Left := marginX;
     end;
   end;
-  Result := TPosition.Create(Left, Top);
 end;
 
-constructor TFormArranger.Create(
-  aArrangerConfiguration: TArrangerConfiguration);
+constructor TFormArranger.Create(aArrangerConfiguration
+  : TArrangerConfiguration);
 begin
   fArrangerConfiguration := aArrangerConfiguration;
 end;
