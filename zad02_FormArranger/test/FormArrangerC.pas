@@ -24,11 +24,18 @@ type
       const aHeight: Integer);
   end;
 
+  TPosition = record
+    Left: Integer;
+    Top: Integer;
+  public
+    constructor Create(const aLeft, aTop: Integer);
+  end;
+
   // IFormArranger
   TFormArranger = class
     function Arrange(
       const rectangles: IList<TRectangle>;
-      const aNewRectangleHeight: Integer): TRectangle;
+      const aNewRectangleHeight: Integer): TPosition;
   end;
 
 implementation
@@ -37,7 +44,7 @@ implementation
 
 function TFormArranger.Arrange(
   const rectangles: IList<TRectangle>;
-  const aNewRectangleHeight: Integer): TRectangle;
+  const aNewRectangleHeight: Integer): TPosition;
 var
   rect: TRectangle;
   maxLineHeight: Integer;
@@ -47,6 +54,9 @@ begin
   Left := MarginHorizontal;
   Top := MarginVertical;
   maxLineHeight := 0;
+  if rectangles.IsEmpty or (rectangles.First.Left <> MarginHorizontal) or
+    (rectangles.First.Top <> MarginVertical) then
+    Exit(TPosition.Create(Left, Top));
   for rect in rectangles do
   begin
     Left := Left + MarginHorizontal + FormWidth;
@@ -58,7 +68,7 @@ begin
       Left := MarginHorizontal;
     end;
   end;
-  Result := TRectangle.Create(left, top, aNewRectangleHeight);
+  Result := TPosition.Create(Left, Top);
 end;
 
 { TRectangle }
@@ -68,6 +78,14 @@ begin
   Left := aLeft;
   Top := aTop;
   Height := aHeight;
+end;
+
+{ TPosition }
+
+constructor TPosition.Create(const aLeft, aTop: Integer);
+begin
+  Left := aLeft;
+  Top := aTop;
 end;
 
 end.

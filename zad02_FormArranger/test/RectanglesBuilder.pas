@@ -60,7 +60,10 @@ begin
   top := aTop;
   for height in aRectnagleHeights do
   begin
-    fRectagles.Add(TRectangle.Create(left, top, height));
+    if height > 0 then
+    begin
+      fRectagles.Add(TRectangle.Create(left, top, height));
+    end;
     left := left + MarginHorizontal + FormWidth;
   end;
 end;

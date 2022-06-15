@@ -4,11 +4,13 @@ interface
 
 uses
   DUnitX.TestFramework,
+  System.SysUtils,
   System.Math,
   Spring.Collections,
   {}
   FormArrangerC,
-  RectanglesBuilder;
+  RectanglesBuilder,
+  PositionHelper;
 
 type
 
@@ -16,11 +18,10 @@ type
   TMyTestObject = class
   private
     rectangles: IList<TRectangle>;
-    newRectangle: TRectangle;
+    position: TPosition;
     rectangleBuilder: TRectangleBuilder;
     sut: TFormArranger;
   public
-
     [Setup]
     procedure Setup;
     [TearDown]
@@ -35,6 +36,8 @@ type
     procedure ArrangeGivenDifferentHeightRectangles;
     [Test]
     procedure ArrangeGivenTwoFilledLinesOfRectangles;
+    [Test]
+    procedure ArrangeGivenEmptySpace;
   end;
 
 implementation
@@ -45,55 +48,62 @@ begin
   rectangles := GivenLineOfRectagles([]);
 
   // Act
-  newRectangle := sut.Arrange(rectangles, 20);
+  position := sut.Arrange(rectangles, 20);
 
   // Assert
-  Assert.AreEqual(MarginHorizontal, newRectangle.Left);
-  Assert.AreEqual(MarginVertical, newRectangle.Top);
+  position.ShouldBe(MarginHorizontal, MarginVertical);
 end;
 
 procedure TMyTestObject.ArrangeOnScreenWithOneRectangle;
 begin
   rectangles := GivenLineOfRectagles([50]);
 
-  newRectangle := sut.Arrange(rectangles, 20);
+  position := sut.Arrange(rectangles, 20);
 
-  Assert.AreEqual(2 * MarginHorizontal + FormWidth, newRectangle.Left);
-  Assert.AreEqual(MarginVertical, newRectangle.Top);
+  position.ShouldBe(2 * MarginHorizontal + FormWidth, MarginVertical);
 end;
 
 procedure TMyTestObject.ArrangeOnScreenWithFullLineOfRectangles;
 begin
   rectangles := GivenLineOfRectagles([50, 50]);
 
-  newRectangle := sut.Arrange(rectangles, 20);
+  position := sut.Arrange(rectangles, 20);
 
-  Assert.AreEqual(MarginHorizontal, newRectangle.Left);
-  Assert.AreEqual(2 * MarginVertical + 50, newRectangle.Top);
+  position.ShouldBe(MarginHorizontal, 2 * MarginVertical + 50);
 end;
 
 procedure TMyTestObject.ArrangeGivenDifferentHeightRectangles;
 begin
   rectangles := GivenLineOfRectagles([20, 50]);
 
-  newRectangle := sut.Arrange(rectangles, 20);
+  position := sut.Arrange(rectangles, 20);
 
-  Assert.AreEqual(MarginHorizontal, newRectangle.Left);
-  Assert.AreEqual(2 * MarginVertical + 50, newRectangle.Top);
+  position.ShouldBe(MarginHorizontal, 2 * MarginVertical + 50);
 end;
 
 procedure TMyTestObject.ArrangeGivenTwoFilledLinesOfRectangles;
 begin
   rectangles := rectangleBuilder { }
     .WithLineOfRectangles(MarginVertical, [20, 50]) { }
-    .WithLineOfRectangles(2 * MarginVertical + 50, [40, 30]) { }
-    .WithLineOfRectangles(3 * MarginVertical + 50 + 40, [35]) { }
-    .Build();
+    .WithLineOfRectangles(2 * MarginVertical + 50, [40, 30])
+    .WithLineOfRectangles(3 * MarginVertical + 50 + 40, [35]).Build();
 
-  newRectangle := sut.Arrange(rectangles, 20);
+  position := sut.Arrange(rectangles, 20);
 
-  Assert.AreEqual(2 * MarginHorizontal + FormWidth, newRectangle.Left);
-  Assert.AreEqual(3 * MarginVertical + 50 + 40, newRectangle.Top);
+  position.ShouldBe(2 * MarginHorizontal + FormWidth,
+    3 * MarginVertical + 50 + 40);
+end;
+
+const
+  Empty = 0;
+
+procedure TMyTestObject.ArrangeGivenEmptySpace;
+begin
+  rectangles := GivenLineOfRectagles([Empty, 50]);
+
+  position := sut.Arrange(rectangles, 20);
+
+  position.ShouldBe(MarginHorizontal, MarginVertical);
 end;
 
 procedure TMyTestObject.Setup;
