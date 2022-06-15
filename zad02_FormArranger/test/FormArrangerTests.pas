@@ -4,28 +4,13 @@ interface
 
 uses
   DUnitX.TestFramework,
+  System.SysUtils,
   System.Math,
-  Spring.Collections;
-
-type
-  // IFormArranger
-  TRectangle = class
-    Top: Integer;
-    Left: Integer;
-    Height: Integer;
-  end;
-
-  TFormArranger = class
-    function Arrange(
-      const rectangles: IList<TRectangle>;
-      const aNewRectangleHeight: Integer): TRectangle;
-  end;
-
-const
-  MarginHorizontal = 10;
-  MarginVertical = 20;
-  FormWidth = 200;
-  ScreenWidth = 600;
+  Spring.Collections,
+  {}
+  FormArrangerC,
+  RectanglesBuilder,
+  PositionHelper;
 
 type
 
@@ -33,10 +18,10 @@ type
   TMyTestObject = class
   private
     rectangles: IList<TRectangle>;
-    newRectangle: TRectangle;
+    position: TPosition;
+    rectangleBuilder: TRectangleBuilder;
     sut: TFormArranger;
   public
-
     [Setup]
     procedure Setup;
     [TearDown]
@@ -47,87 +32,90 @@ type
     procedure ArrangeOnScreenWithOneRectangle;
     [Test]
     procedure ArrangeOnScreenWithFullLineOfRectangles;
+    [Test]
+    procedure ArrangeGivenDifferentHeightRectangles;
+    [Test]
+    procedure ArrangeGivenTwoFilledLinesOfRectangles;
+    [Test]
+    procedure ArrangeGivenEmptySpace;
   end;
 
 implementation
 
-function CreateRectangle(
-  aLeft: Integer;
-  aTop: Integer;
-  aHeight: Integer): TRectangle;
-begin
-  Result := TRectangle.Create;
-  Result.Left := aLeft;
-  Result.Top := aTop;
-  Result.Height := aHeight;
-end;
-
 procedure TMyTestObject.ArrangeOnEmptyScreen;
 begin
   // Arrange
-  rectangles := TCollections.CreateObjectList<TRectangle>();
+  rectangles := GivenLineOfRectagles([]);
 
   // Act
-  newRectangle := sut.Arrange(rectangles, 20);
+  position := sut.Arrange(rectangles, 20);
 
   // Assert
-  Assert.AreEqual(MarginHorizontal, newRectangle.Left);
-  Assert.AreEqual(MarginVertical, newRectangle.Top);
+  position.ShouldBe(MarginHorizontal, MarginVertical);
 end;
 
 procedure TMyTestObject.ArrangeOnScreenWithOneRectangle;
 begin
-  rectangles := TCollections.CreateObjectList<TRectangle>
-    ([CreateRectangle(MarginHorizontal, MarginVertical, 50)]);
+  rectangles := GivenLineOfRectagles([50]);
 
-  newRectangle := sut.Arrange(rectangles, 20);
+  position := sut.Arrange(rectangles, 20);
 
-  Assert.AreEqual(2 * MarginHorizontal + FormWidth, newRectangle.Left);
-  Assert.AreEqual(MarginVertical, newRectangle.Top);
+  position.ShouldBe(2 * MarginHorizontal + FormWidth, MarginVertical);
 end;
 
 procedure TMyTestObject.ArrangeOnScreenWithFullLineOfRectangles;
 begin
-  rectangles := TCollections.CreateObjectList<TRectangle>
-    ([CreateRectangle(MarginHorizontal, MarginVertical, 50),
-      CreateRectangle(2*MarginHorizontal+FormWidth, MarginVertical, 50)]);
+  rectangles := GivenLineOfRectagles([50, 50]);
 
-  newRectangle := sut.Arrange(rectangles, 20);
+  position := sut.Arrange(rectangles, 20);
 
-  Assert.AreEqual(MarginHorizontal, newRectangle.Left);
-  Assert.AreEqual(2*MarginVertical+50, newRectangle.Top);
+  position.ShouldBe(MarginHorizontal, 2 * MarginVertical + 50);
+end;
+
+procedure TMyTestObject.ArrangeGivenDifferentHeightRectangles;
+begin
+  rectangles := GivenLineOfRectagles([20, 50]);
+
+  position := sut.Arrange(rectangles, 20);
+
+  position.ShouldBe(MarginHorizontal, 2 * MarginVertical + 50);
+end;
+
+procedure TMyTestObject.ArrangeGivenTwoFilledLinesOfRectangles;
+begin
+  rectangles := rectangleBuilder { }
+    .WithLineOfRectangles(MarginVertical, [20, 50]) { }
+    .WithLineOfRectangles(2 * MarginVertical + 50, [40, 30])
+    .WithLineOfRectangles(3 * MarginVertical + 50 + 40, [35]).Build();
+
+  position := sut.Arrange(rectangles, 20);
+
+  position.ShouldBe(2 * MarginHorizontal + FormWidth,
+    3 * MarginVertical + 50 + 40);
+end;
+
+const
+  Empty = 0;
+
+procedure TMyTestObject.ArrangeGivenEmptySpace;
+begin
+  rectangles := GivenLineOfRectagles([Empty, 50]);
+
+  position := sut.Arrange(rectangles, 20);
+
+  position.ShouldBe(MarginHorizontal, MarginVertical);
 end;
 
 procedure TMyTestObject.Setup;
 begin
   sut := TFormArranger.Create;
+  rectangleBuilder := TRectangleBuilder.Create();
 end;
 
 procedure TMyTestObject.TearDown;
 begin
   sut.Free;
-end;
-
-{ TFormArranger }
-
-function TFormArranger.Arrange(
-  const rectangles: IList<TRectangle>;
-  const aNewRectangleHeight: Integer): TRectangle;
-var
-  rectangle: TRectangle;
-begin
-  Result := TRectangle.Create;
-  Result.Left := MarginHorizontal;
-  Result.Top := MarginVertical;
-  for rectangle in rectangles do
-  begin
-    Result.Left := Result.Left + MarginHorizontal + FormWidth;
-    if Result.Left + FormWidth >= ScreenWidth then
-    begin
-      Result.Top := Result.Top + rectangles.First.Height + MarginVertical;
-      Result.Left := MarginHorizontal;
-    end;
-  end;
+  rectangleBuilder.Free;
 end;
 
 initialization
