@@ -21,6 +21,7 @@ type
     rectangles: IList<TRectangle>;
     position: TPosition;
     rectangleBuilder: TRectangleBuilder;
+    arrangerConfiguration: TArrangerConfiguration;
     sut: TFormArranger;
   public
     [Setup]
@@ -38,7 +39,9 @@ type
     [Test]
     procedure ArrangeGivenTwoFilledLinesOfRectangles;
     [Test]
-    procedure ArrangeGivenEmptySpace;
+    procedure ArrangeGivenFirstSlotEmpty;
+    [Test]
+    procedure ArrangeGivenSecondSlotEmpty;
   end;
 
 implementation
@@ -113,7 +116,7 @@ end;
 const
   Empty = 0;
 
-procedure TMyTestObject.ArrangeGivenEmptySpace;
+procedure TMyTestObject.ArrangeGivenFirstSlotEmpty;
 begin
   rectangles := GivenLineOfRectagles([Empty, 50], GivenDefaultConfiguration());
 
@@ -122,20 +125,21 @@ begin
   position.ShouldBe(10, 20);
 end;
 
-procedure TMyTestObject.Setup;
-var
-  arrangerConfiguration: TArrangerConfiguration;
+procedure TMyTestObject.ArrangeGivenSecondSlotEmpty;
 begin
-  arrangerConfiguration := TArrangerConfiguration.Create;
-  with arrangerConfiguration do
-  begin
-    MarginHorizontal := 10;
-    MarginVertical := 20;
-    FormWidth := 200;
-    ScreenWidth := 600;
-  end;
+  arrangerConfiguration.ScreenWidth := 1000;
+  rectangles := GivenLineOfRectagles([40, Empty, 50], arrangerConfiguration);
+
+  position := sut.Arrange(rectangles, 20);
+
+  position.ShouldBe(220, 20);
+end;
+
+procedure TMyTestObject.Setup;
+begin
+  arrangerConfiguration := GivenDefaultConfiguration();
   sut := TFormArranger.Create(arrangerConfiguration);
-  rectangleBuilder := TRectangleBuilder.Create(GivenDefaultConfiguration());
+  rectangleBuilder := TRectangleBuilder.Create(arrangerConfiguration);
 end;
 
 procedure TMyTestObject.TearDown;
